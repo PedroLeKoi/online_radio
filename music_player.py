@@ -52,35 +52,26 @@ class client:
         
         # FIXME
         # Check if config values are valid
+        
+        self.status()
     
     
     
     def __del__(self):
         """docstring"""
         
-        # Variables
-        lng_idx = 0
-        lst_txt_lines = []
-        
-        # Read conf file
-        lst_txt_lines = self.__read_conf_file(self.__str_path_conf_file)
-        
         # Save current values
-        for lng_idx in range(0, len(lst_txt_lines)):
-            if lst_txt_lines[lng_idx].startswith("current_station"):
-                lst_txt_lines[lng_idx] = (
-                    "current_station=%s\n" % self.__lng_curr_station
-                )
+        self.__write_conf()
         
-        # Write conf file
-        self.__write_conf_file(lst_txt_lines, self.__str_path_conf_file)
+        # Stop playing stream
+        self.stop()
     
     
     
     def __does_conf_dir_exist(self):
         """docstring"""
         
-        print ("Does Conf Dir Exist")
+        print ("mpc: does conf dir exist")
         
         # Variables
         bol_dir_exists = False
@@ -113,6 +104,11 @@ class client:
             except OSError as obj_err:
                 print (obj_err)
         
+        # Check if conf dir exists
+        if os.path.exists(str_path_conf_dir):
+            if os.path.isdir(str_path_conf_dir):
+                bol_dir_exists = True
+        
         # Check if dir was created successfully
         if not bol_dir_exists:
             raw_input("ERROR\n"
@@ -128,7 +124,7 @@ class client:
     def __does_conf_file_exist(self, str_path_conf_dir):
         """docstring"""
         
-        print ("Does Conf File Exist")
+        print ("mpc: does conf file exist")
         
         # Variables
         bol_file_exists = False
@@ -162,7 +158,7 @@ class client:
         lst_output = []
         str_output = ""
         
-        print ("Playlist")
+        print ("mpc: playlist")
         
         str_output = subprocess.check_output(["mpc", "playlist"]).strip()
         lst_output = str_output.split("\n")
@@ -174,7 +170,7 @@ class client:
     def __read_conf(self, str_path_conf_file):
         """docstring"""
         
-        print ("Read Conf")
+        print ("mpc: read conf")
         
         # Variables
         option = ""
@@ -194,7 +190,7 @@ class client:
     def __read_conf_file(self, str_path_conf_file):
         """docstring"""
         
-        print ("Read Conf File")
+        print ("mpc: read conf file")
         
         # Variables
         lst_txt_lines = []
@@ -209,10 +205,34 @@ class client:
     
     
     
+    def __write_conf(self):
+        """docstring"""
+        
+        print ("mpc: write conf")
+        
+        # Variables
+        lng_idx = 0
+        lst_txt_lines = []
+        
+        # Read conf file
+        lst_txt_lines = self.__read_conf_file(self.__str_path_conf_file)
+        
+        # Save current values
+        for lng_idx in range(0, len(lst_txt_lines)):
+            if lst_txt_lines[lng_idx].startswith("current_station"):
+                lst_txt_lines[lng_idx] = (
+                    "current_station=%s\n" % self.__lng_curr_station
+                )
+        
+        # Write conf file
+        self.__write_conf_file(lst_txt_lines, self.__str_path_conf_file)
+    
+    
+    
     def __write_conf_file(self, lst_txt_lines, str_path_conf_file):
         """docstring"""
         
-        print ("Write Conf File")
+        print ("mpc: write conf file")
         
         # Variables
         obj_conf_file = object()
@@ -227,7 +247,7 @@ class client:
     def mute(self, str_state_to_set):
         """docstring"""
         
-        print ("Mute")
+        print ("mpc: mute")
         
         # Variables
         lst_output = []
@@ -252,7 +272,7 @@ class client:
     def next(self):
         """docstring"""
         
-        print ("Next")
+        print ("mpc: next")
         
         # Variables
         lst_playlist = []
@@ -272,7 +292,7 @@ class client:
     def play(self, str_state_to_set):
         """docstring"""
         
-        print ("Play")
+        print ("mpc: play")
         
         str_curr_station = str(self.__lng_curr_station)
         
@@ -280,13 +300,15 @@ class client:
             subprocess.call(["mpc", "pause"])
         else:
             subprocess.call(["mpc", "play", str_curr_station])
+        
+        self.status()
     
     
     
     def prev(self):
         """docstring"""
         
-        print ("Previous")
+        print ("mpc: previous")
         
         # Variables
         lst_playlist = []
@@ -306,29 +328,87 @@ class client:
     def status(self):
         """docstring"""
         
+        print ("mpc: status")
+        
+        # Constants
+        LST_OPTIONS = ["consume", "single", "random", "repeat", "volume"]
+        
         # Variables
-        dic_status = {}
+        dic_status = {
+            "station":    "",
+            "artist":     "",
+            "song":       "",
+            "status":     "",
+            "track_num":  "",
+            "time":       "",
+            "time_perc":  "",
+            "volume":     "",
+            "repeat":   "off",
+            "random":   "off",
+            "single":   "off",
+            "consume":  "off"
+        }
+        lng_idx = 0
+        lng_pos_l = 0
+        lng_pos_r = 0
         lst_output = []
         lst_status = []
+        lst_temp = []
+        str_option = ""
         str_output = ""
         str_status = ""
         
         str_output = subprocess.check_output(["mpc", "status"]).strip()
-        lst_output = str_output.split("   ")
+        lst_output = str_output.split("\n")
         
-        for str_status in lst_output:
-            lst_status = str_status.split(":")
-            dic_status[lst_status[0]] = lst_status[1].strip()
+        if len(lst_output) > 1:
+            # Line 1
+            lst_temp = lst_output[0].split(":")
+            dic_status["station"] = lst_temp[0]
+            if " - " in lst_temp[1]:
+                lst_temp = lst_temp[1].split(" - ")
+                dic_status["artist"] = lst_temp[0].strip()
+                dic_status["song"]   = lst_temp[1].strip()
+            else:
+                dic_status["artist"] = lst_temp[1].strip()
+                dic_status["song"]   = "-/-"
+            # Line 2
+            lst_temp = filter(None, lst_output[1].split(" "))
+            dic_status["status"]    = lst_temp[0][1:(-1)]
+            dic_status["track_num"] = lst_temp[1][1:]
+            dic_status["time"]      = lst_temp[2]
+            dic_status["time_perc"] = lst_temp[3][1:(-1)]
+            # Line 3
+            str_output = lst_output[2]
+        else:
+            str_output = lst_output[0]
+        
+        lst_temp = filter(None, str_output.split(" "))
+        dic_status["volume"]  = lst_temp[1][:(-1)]
+        dic_status["repeat"]  = lst_temp[3]
+        dic_status["random"]  = lst_temp[5]
+        dic_status["single"]  = lst_temp[7]
+        dic_status["consume"] = lst_temp[9]
+        
         print (dic_status)
         
         return dic_status
     
     
     
+    def stop(self):
+        """docstring"""
+        
+        print ("mpc: stop")
+        
+        subprocess.call(["mpc", "stop"])
+    
+    
+    
     def vol_down(self):
         """docstring"""
         
-        print ("Volume down")
+        print ("mpc: volume down")
         
         subprocess.call(["mpc", "volume", "-5"])
     
@@ -337,7 +417,7 @@ class client:
     def vol_up(self):
         """docstring"""
         
-        print ("Volume up")
+        print ("mpc: volume up")
         
         subprocess.call(["mpc", "volume", "+5"])
 
