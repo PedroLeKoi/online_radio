@@ -63,11 +63,8 @@ class OnlineRadio(Tkinter.Frame):
         
         self.master.title("Radio")
         
-        self.grid()
-        for int_row in range(7):
-            self.master.rowconfigure(int_row, weight=1)    
-        for int_col in range(4):
-            self.master.columnconfigure(int_col, weight=1)
+        self.master.grid_rowconfigure(1, weight=1)    
+        self.master.grid_columnconfigure(0, weight=1)
         
         #=========
         
@@ -87,11 +84,11 @@ class OnlineRadio(Tkinter.Frame):
         # Row 1
         int_row = 0
         lbl_station = Tkinter.Label(
-            master,
+            frm_display,
             text="Station:"
         )
         lbl_curr_station = Tkinter.Label(
-            master,
+            frm_display,
             textvariable=self.str_curr_station
         )
         
@@ -115,11 +112,11 @@ class OnlineRadio(Tkinter.Frame):
         # Row 2
         int_row = 1
         lbl_artist = ttk.Label(
-            master,
+            frm_display,
             text="Artist:"
         )
         lbl_curr_artist = ttk.Label(
-            master,
+            frm_display,
             textvariable=self.str_curr_artist
         )
         
@@ -143,11 +140,11 @@ class OnlineRadio(Tkinter.Frame):
         # Row 3
         int_row = 2
         lbl_song = ttk.Label(
-            master,
+            frm_display,
             text="Song:"
         )
         lbl_curr_song = ttk.Label(
-            master,
+            frm_display,
             textvariable=self.str_curr_song
         )
         
@@ -171,15 +168,15 @@ class OnlineRadio(Tkinter.Frame):
         # Row 4
         int_row = 3
         lbl_vol = ttk.Label(
-            master,
+            frm_display,
             textvariable=self.str_vol
         )
         lbl_date = ttk.Label(
-            master,
+            frm_display,
             textvariable=self.str_date
         )
         lbl_time = ttk.Label(
-            master,
+            frm_display,
             textvariable=self.str_time
         )
         
@@ -226,22 +223,22 @@ class OnlineRadio(Tkinter.Frame):
         # Row 5
         int_row = 4
         chk_consume = ttk.Checkbutton(
-            master,
+            frm_play_mode,
             text="consume",
             variable=self.bol_consume
         )
         chk_random = ttk.Checkbutton(
-            master,
+            frm_play_mode,
             text="random",
             variable=self.bol_random
         )
         chk_repeat = ttk.Checkbutton(
-            master,
+            frm_play_mode,
             text="repeat",
             variable=self.bol_repeat
         )
         chk_single = ttk.Checkbutton(
-            master,
+            frm_play_mode,
             text="single",
             variable=self.bol_single
         )
@@ -293,19 +290,19 @@ class OnlineRadio(Tkinter.Frame):
         # Row 6
         int_row = 5
         btn_add_url = ttk.Button(
-            master,
+            frm_ctrl_panel,
             text="+URL"
         )
         btn_skip_to_prev = ttk.Button(
-            master,
+            frm_ctrl_panel,
             text="< Prev"
         )
         btn_play = ttk.Button(
-            master,
+            frm_ctrl_panel,
             textvariable=self.str_play_text
         )
         btn_skip_to_next = ttk.Button(
-            master,
+            frm_ctrl_panel,
             text="Next >"
         )
         
@@ -339,19 +336,19 @@ class OnlineRadio(Tkinter.Frame):
         # Row 7
         int_row = 6
         btn_show_playlists = ttk.Button(
-            master,
+            frm_ctrl_panel,
             text="Lists"
         )
         btn_vol_down = ttk.Button(
-            master,
+            frm_ctrl_panel,
             text="-V"
         )
         btn_vol_mute = ttk.Button(
-            master,
+            frm_ctrl_panel,
             textvariable=self.str_mute_text
         )
         btn_vol_up = ttk.Button(
-            master,
+            frm_ctrl_panel,
             text="+V"
         )
         
