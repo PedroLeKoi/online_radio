@@ -30,6 +30,20 @@ class client:
             "consume": "off"
         }
     }
+    __dic_status = {
+        "station":    "",
+        "artist":     "",
+        "song":       "",
+        "status":     "",
+        "track_num":  "",
+        "time":       "",
+        "time_perc":  "",
+        "volume":     "",
+        "repeat":   "off",
+        "random":   "off",
+        "single":   "off",
+        "consume":  "off"
+    }
     __int_curr_vol = 0
     __lng_curr_station = 0
     __str_path_conf_dir = ""
@@ -205,6 +219,70 @@ class client:
     
     
     
+    def __status_l1(self, lst_output):
+        """docstring"""
+        
+        print ("mpc: get status line 1")
+        
+        # Variables
+        lst_temp = []
+        
+        # FIXME
+        # Limit number of characters
+        
+        if len(lst_output) > 1:
+            lst_temp = lst_output[0].split(":")
+            self.__dic_status["station"] = lst_temp[0]
+            if " - " in lst_temp[1]:
+                lst_temp = lst_temp[1].split(" - ")
+                self.__dic_status["artist"] = lst_temp[0].strip()
+                self.__dic_status["song"]   = lst_temp[1].strip()
+            else:
+                self.__dic_status["artist"] = lst_temp[1].strip()
+                self.__dic_status["song"]   = "-/-"
+    
+    
+    
+    def __status_l2(self, lst_output):
+        """docstring"""
+        
+        print ("mpc: get status line 2")
+        
+        # Variables
+        lst_temp = []
+        
+        if len(lst_output) > 1:
+            lst_temp = filter(None, lst_output[1].split(" "))
+            self.__dic_status["status"]    = lst_temp[0][1:(-1)]
+            self.__dic_status["track_num"] = lst_temp[1][1:]
+            self.__dic_status["time"]      = lst_temp[2]
+            self.__dic_status["time_perc"] = lst_temp[3][1:(-1)]
+    
+    
+    
+    def __status_l3(self, lst_output):
+        """docstring"""
+        
+        print ("mpc: get status line 3")
+        
+        # Variables
+        lst_temp = []
+        str_output = lst_output[(-1)]
+        
+        #if len(lst_output) > 1:
+        #    str_output = lst_output[3]
+        #else:
+        #    str_output = lst_output[0]
+        
+        lst_temp = filter(None, str_output.split(" "))
+        self.__dic_status["volume"]  = lst_temp[1][:(-1)]
+        self.__dic_status["repeat"]  = lst_temp[3]
+        self.__dic_status["random"]  = lst_temp[5]
+        self.__dic_status["single"]  = lst_temp[7]
+        self.__dic_status["consume"] = lst_temp[9]
+    
+    
+    
     def __write_conf(self):
         """docstring"""
         
@@ -269,10 +347,24 @@ class client:
     
     
     
-    def next(self):
+    def play(self, str_state_to_set):
         """docstring"""
         
-        print ("mpc: next")
+        print ("mpc: play")
+        
+        str_curr_station = str(self.__lng_curr_station)
+        
+        if str_state_to_set == "pause":
+            subprocess.call(["mpc", "pause"])
+        else:
+            subprocess.call(["mpc", "play", str_curr_station])
+    
+    
+    
+    def play_next(self):
+        """docstring"""
+        
+        print ("mpc: play next")
         
         # Variables
         lst_playlist = []
@@ -289,26 +381,10 @@ class client:
     
     
     
-    def play(self, str_state_to_set):
+    def play_prev(self):
         """docstring"""
         
-        print ("mpc: play")
-        
-        str_curr_station = str(self.__lng_curr_station)
-        
-        if str_state_to_set == "pause":
-            subprocess.call(["mpc", "pause"])
-        else:
-            subprocess.call(["mpc", "play", str_curr_station])
-        
-        self.status()
-    
-    
-    
-    def prev(self):
-        """docstring"""
-        
-        print ("mpc: previous")
+        print ("mpc: play previous")
         
         # Variables
         lst_playlist = []
@@ -330,69 +406,18 @@ class client:
         
         print ("mpc: status")
         
-        # Constants
-        LST_OPTIONS = ["consume", "single", "random", "repeat", "volume"]
-        
         # Variables
-        dic_status = {
-            "station":    "",
-            "artist":     "",
-            "song":       "",
-            "status":     "",
-            "track_num":  "",
-            "time":       "",
-            "time_perc":  "",
-            "volume":     "",
-            "repeat":   "off",
-            "random":   "off",
-            "single":   "off",
-            "consume":  "off"
-        }
-        lng_idx = 0
-        lng_pos_l = 0
-        lng_pos_r = 0
         lst_output = []
-        lst_status = []
-        lst_temp = []
-        str_option = ""
         str_output = ""
-        str_status = ""
         
         str_output = subprocess.check_output(["mpc", "status"]).strip()
         lst_output = str_output.split("\n")
         
-        if len(lst_output) > 1:
-            # Line 1
-            lst_temp = lst_output[0].split(":")
-            dic_status["station"] = lst_temp[0]
-            if " - " in lst_temp[1]:
-                lst_temp = lst_temp[1].split(" - ")
-                dic_status["artist"] = lst_temp[0].strip()
-                dic_status["song"]   = lst_temp[1].strip()
-            else:
-                dic_status["artist"] = lst_temp[1].strip()
-                dic_status["song"]   = "-/-"
-            # Line 2
-            lst_temp = filter(None, lst_output[1].split(" "))
-            dic_status["status"]    = lst_temp[0][1:(-1)]
-            dic_status["track_num"] = lst_temp[1][1:]
-            dic_status["time"]      = lst_temp[2]
-            dic_status["time_perc"] = lst_temp[3][1:(-1)]
-            # Line 3
-            str_output = lst_output[2]
-        else:
-            str_output = lst_output[0]
+        self.__status_l1(lst_output)
+        self.__status_l2(lst_output)
+        self.__status_l3(lst_output)
         
-        lst_temp = filter(None, str_output.split(" "))
-        dic_status["volume"]  = lst_temp[1][:(-1)]
-        dic_status["repeat"]  = lst_temp[3]
-        dic_status["random"]  = lst_temp[5]
-        dic_status["single"]  = lst_temp[7]
-        dic_status["consume"] = lst_temp[9]
-        
-        print (dic_status)
-        
-        return dic_status
+        return self.__dic_status
     
     
     
