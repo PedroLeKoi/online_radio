@@ -224,6 +224,9 @@ class client:
         
         print ("mpc: get status line 1")
         
+        # Constant
+        STR_DELIM = " - "
+        
         # Variables
         lst_temp = []
         
@@ -233,8 +236,11 @@ class client:
         if len(lst_output) > 1:
             lst_temp = lst_output[0].split(":")
             self.__dic_status["station"] = lst_temp[0]
-            if " - " in lst_temp[1]:
-                lst_temp = lst_temp[1].split(" - ")
+            if STR_DELIM in lst_temp[1]:
+                lst_temp = lst_temp[1].split(STR_DELIM)
+                #print (STR_DELIM)
+                #print (lst_temp[0].strip())
+                #print (lst_temp[1].strip())
                 self.__dic_status["artist"] = lst_temp[0].strip()
                 self.__dic_status["song"]   = lst_temp[1].strip()
             else:
@@ -322,6 +328,13 @@ class client:
     
     
     
+    def consume(self, bol_state_to_set):
+        """docstring"""
+        
+        print ("mpc: consume")
+    
+    
+    
     def mute(self, str_state_to_set):
         """docstring"""
         
@@ -344,9 +357,25 @@ class client:
             # Set volume to saved value
             subprocess.call(["mpc", "volume", str(self.__int_curr_vol)])
             self.__int_curr_vol = 0
-    
-    
-    
+#    
+#    
+#    
+#    def random(self, bol_state_to_set):
+#        """docstring"""
+#        
+#        print ("mpc: random")
+#    
+#    
+#    
+#    def repeat(self, bol_state_to_set):
+#        """docstring"""
+#        
+#        print ("mpc: repeat")
+#        
+#        self.__toggle_play_mode(bol_state_to_set, str_feature)
+#    
+#    
+#    
     def play(self, str_state_to_set):
         """docstring"""
         
@@ -401,6 +430,13 @@ class client:
     
     
     
+    def single(self, bol_state_to_set):
+        """docstring"""
+        
+        print ("mpc: single")
+    
+    
+    
     def status(self):
         """docstring"""
         
@@ -427,6 +463,18 @@ class client:
         print ("mpc: stop")
         
         subprocess.call(["mpc", "stop"])
+    
+    
+    
+    def toggle_play_mode(self, bol_state_to_set, str_feature):
+        """docstring"""
+        
+        print ("mpc: toggle play mode")
+        
+        if bol_state_to_set:
+            subprocess.call(["mpc", str_feature, "on"])
+        else:
+            subprocess.call(["mpc", str_feature, "off"])
     
     
     
