@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+#
+# FIXME
+# * Pack objects into frames
+#   https://www.python-kurs.eu/tkinter_checkboxes.php
 
 import Tkinter
 import ttk
@@ -14,6 +18,16 @@ obj_root.title("Radio")
 
 
 dic_status = {}
+bol_consume = Tkinter.BooleanVar()
+bol_consume.set(False)
+bol_random = Tkinter.BooleanVar()
+bol_random.set(False)
+bol_repeat = Tkinter.BooleanVar()
+bol_repeat.set(False)
+bol_single = Tkinter.BooleanVar()
+bol_single.set(False)
+str_artist_name = Tkinter.StringVar()
+str_artist_name.set("<empty>")
 str_date = Tkinter.StringVar()
 str_date.set("D:")
 str_mute_text = Tkinter.StringVar()
@@ -34,8 +48,14 @@ str_vol.set("Vol.:")
 obj_frame = ttk.Frame(obj_root)
 lbl_station = ttk.Label(obj_frame, text="Station:")
 lbl_station_name = ttk.Label(obj_frame, textvariable=str_station_name)
+lbl_artist = ttk.Label(obj_frame, text="Artist:")
+lbl_artist_name = ttk.Label(obj_frame, textvariable=str_artist_name)
 lbl_song = ttk.Label(obj_frame, text="Song:")
 lbl_song_name = ttk.Label(obj_frame, textvariable=str_song_name)
+chk_repeat = ttk.Checkbutton(obj_frame, text="repeat",  variable=bol_repeat)
+chk_random = ttk.Checkbutton(obj_frame, text="random",  variable=bol_random)
+chk_single = ttk.Checkbutton(obj_frame, text="single",  variable=bol_single)
+chk_consume = ttk.Checkbutton(obj_frame, text="consume", variable=bol_consume)
 lbl_vol = ttk.Label(obj_frame, textvariable=str_vol)
 lbl_date = ttk.Label(obj_frame, textvariable=str_date)
 lbl_time = ttk.Label(obj_frame, textvariable=str_time)
@@ -73,7 +93,9 @@ def __update_info():
     obj_datetime_now = datetime.now()
     
     str_station_name.set(dic_status["station"])
-    str_song_name.set(dic_status["artist"] + " - " + dic_status["song"])
+    str_artist_name.set(dic_status["artist"])
+    str_song_name.set(dic_status["song"])
+    
     str_vol.set("Vol.: " + dic_status["volume"] + "%")
 
 
@@ -85,7 +107,8 @@ def __update_station():
     dic_status = mpc.status()
     
     str_station_name.set(dic_status["station"])
-    str_song_name.set(dic_status["artist"] + " - " + dic_status["song"])
+    str_artist_name.set(dic_status["artist"])
+    str_song_name.set(dic_status["song"])
 
 
 
@@ -103,6 +126,62 @@ def evt_add_url(event):
     """docstring"""
     
     print ("gui: add url")
+
+
+
+def evt_consume(event):
+    """docstring"""
+    
+    print ("gui: toggle consume")
+    
+    if bol_consume.get():
+        bol_consume.set(True)
+        mpc.toggle_play_mode(False, "consume")
+    else:
+        bol_consume.set(False)
+        mpc.toggle_play_mode(True, "consume")
+
+
+
+def evt_random(event):
+    """docstring"""
+    
+    print ("gui: toggle random")
+    
+    if bol_random.get():
+        bol_random.set(True)
+        mpc.toggle_play_mode(False, "random")
+    else:
+        bol_random.set(False)
+        mpc.toggle_play_mode(True, "random")
+
+
+
+def evt_repeat(event):
+    """docstring"""
+    
+    print ("gui: toggle repeat")
+    
+    if bol_repeat.get():
+        bol_repeat.set(True)
+        mpc.toggle_play_mode(False, "repeat")
+    else:
+        bol_repeat.set(False)
+        mpc.toggle_play_mode(True, "repeat")
+
+
+
+def evt_single(event):
+    """docstring"""
+    
+    print ("gui: toggle single")
+    
+    if bol_single.get():
+        bol_single.set(True)
+        mpc.toggle_play_mode(False, "single")
+    else:
+        bol_single.set(False)
+        mpc.toggle_play_mode(True, "single")
 
 
 
@@ -193,25 +272,159 @@ btn_show_playlists.bind("<Button-1>", evt_show_playlists)
 btn_vol_down.bind("<Button-1>", evt_vol_down)
 btn_vol_mute.bind("<Button-1>", evt_mute)
 btn_vol_up.bind("<Button-1>", evt_vol_up)
+chk_consume.bind("<Button-1>", evt_consume)
+chk_random.bind("<Button-1>", evt_random)
+chk_repeat.bind("<Button-1>", evt_repeat)
+chk_single.bind("<Button-1>", evt_single)
 
 
 
-obj_frame.grid(column=0, row=0)
-lbl_station.grid(column=0, row=0, columnspan=1, sticky=Tkinter.W, padx=3)
-lbl_station_name.grid(column=1, row=0, columnspan=3, sticky=Tkinter.W, padx=3)
-lbl_song.grid(column=0, row=1, columnspan=1, sticky=Tkinter.W, padx=3)
-lbl_song_name.grid(column=1, row=1, columnspan=3, sticky=Tkinter.W, padx=3)
-lbl_vol.grid(column=0, row=2, sticky=Tkinter.W, padx=3)
-lbl_date.grid(column=2, row=2, sticky=Tkinter.W, padx=3)
-lbl_time.grid(column=3, row=2, sticky=Tkinter.E, padx=3)
-btn_add_url.grid(column=0, row=3)
-btn_play_prev.grid(column=1, row=3)
-btn_play.grid(column=2, row=3)
-btn_play_next.grid(column=3, row=3)
-btn_show_playlists.grid(column=0, row=4)
-btn_vol_down.grid(column=1, row=4)
-btn_vol_mute.grid(column=2, row=4)
-btn_vol_up.grid(column=3, row=4)
+#
+int_row = 0
+obj_frame.grid(column=0, row=int_row)
+lbl_station.grid(
+    column=0,
+    row=int_row,
+    columnspan=4,
+    sticky=Tkinter.W,
+    padx=3
+)
+lbl_station_name.grid(
+    column=4,
+    row=int_row,
+    columnspan=12,
+    sticky=Tkinter.W,
+    padx=3
+)
+#
+int_row = 1
+lbl_artist.grid(
+    column=0,
+    row=int_row,
+    columnspan=4,
+    sticky=Tkinter.W,
+    padx=3
+)
+lbl_artist_name.grid(
+    column=4,
+    row=int_row,
+    columnspan=12,
+    sticky=Tkinter.W,
+    padx=3
+)
+#
+int_row = 2
+lbl_song.grid(
+    column=0,
+    row=int_row,
+    columnspan=4,
+    sticky=Tkinter.W,
+    padx=3
+)
+lbl_song_name.grid(
+    column=4,
+    row=int_row,
+    columnspan=12,
+    sticky=Tkinter.W,
+    padx=3
+)
+#
+int_row = 3
+lbl_vol.grid(
+    column=0,
+    row=int_row,
+    columnspan=4,
+    sticky=Tkinter.W,
+    padx=3
+)
+lbl_date.grid(
+    column=8,
+    row=int_row,
+    columnspan=4,
+    sticky=Tkinter.W,
+    padx=3
+)
+lbl_time.grid(
+    column=12,
+    row=int_row,
+    columnspan=4,
+    sticky=Tkinter.E,
+    padx=3
+)
+#
+int_row = 4
+chk_consume.grid(
+    column=0,
+    row=int_row,
+    columnspan=4,
+    sticky=Tkinter.W,
+    padx=3
+)
+chk_random.grid(
+    column=4,
+    row=int_row,
+    columnspan=4,
+    sticky=Tkinter.W,
+    padx=3
+)
+chk_repeat.grid(
+    column=8,
+    row=int_row,
+    columnspan=4,
+    sticky=Tkinter.W,
+    padx=3
+)
+chk_single.grid(
+    column=12,
+    row=int_row,
+    columnspan=4,
+    sticky=Tkinter.W,
+    padx=3
+)
+#
+int_row = 5
+btn_add_url.grid(
+    column=0,
+    row=int_row,
+    columnspan=4
+)
+btn_play_prev.grid(
+    column=4,
+    row=int_row,
+    columnspan=4
+)
+btn_play.grid(
+    column=8,
+    row=int_row,
+    columnspan=4
+)
+btn_play_next.grid(
+    column=12,
+    row=int_row,
+    columnspan=4
+)
+#
+int_row = 6
+btn_show_playlists.grid(
+    column=0,
+    row=int_row,
+    columnspan=4
+)
+btn_vol_down.grid(
+    column=4,
+    row=int_row,
+    columnspan=4
+)
+btn_vol_mute.grid(
+    column=8,
+    row=int_row,
+    columnspan=4
+)
+btn_vol_up.grid(
+    column=12,
+    row=int_row,
+    columnspan=4
+)
 
 
 
