@@ -40,7 +40,7 @@ mpc = music_player.client()
 def evt_next(event):
     """docstring"""
     
-    print ("Next")
+    print ("gui: next")
     
     mpc.next()
 
@@ -49,7 +49,7 @@ def evt_next(event):
 def evt_play(event):
     """docstring"""
     
-    print ("Play")
+    print ("gui: play")
     
     if str_play_text.get() == "Pause":
         mpc.play("pause")
@@ -63,7 +63,7 @@ def evt_play(event):
 def evt_prev(event):
     """docstring"""
     
-    print ("Previous")
+    print ("gui: previous")
     
     mpc.prev()
 
@@ -72,7 +72,7 @@ def evt_prev(event):
 def evt_vol_down(event):
     """docstring"""
     
-    print ("Volume down")
+    print ("gui: volume down")
     
     mpc.vol_down()
 
@@ -81,7 +81,7 @@ def evt_vol_down(event):
 def evt_mute(event):
     """docstring"""
     
-    print ("Mute")
+    print ("gui: mute")
     
     if str_mute_text.get() == "Mute":
         mpc.mute("mute")
@@ -95,7 +95,7 @@ def evt_mute(event):
 def evt_vol_up(event):
     """docstring"""
     
-    print ("Volume up")
+    print ("gui: volume up")
     
     mpc.vol_up()
 
@@ -122,6 +122,10 @@ btn_next.grid(column=2, row=3)
 btn_vol_down.grid(column=0, row=4)
 btn_vol_mute.grid(column=1, row=4)
 btn_vol_up.grid(column=2, row=4)
+
+
+
+mpc.play("play")
 
 
 
