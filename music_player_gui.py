@@ -54,6 +54,51 @@ mpc = music_player.client()
 
 
 
+def __update_date_time():
+    """docstring"""
+    
+    # Variables
+    obj_datetime_now = datetime.now()
+    
+    str_date.set("D: " + obj_datetime_now.strftime("%d.%m.%y"))
+    str_time.set("T: " + obj_datetime_now.strftime("%H:%M"))
+
+
+
+def __update_info():
+    """docstring"""
+    
+    # Variables
+    dic_status = mpc.status()
+    obj_datetime_now = datetime.now()
+    
+    str_station_name.set(dic_status["station"])
+    str_song_name.set(dic_status["artist"] + " - " + dic_status["song"])
+    str_vol.set("Vol.: " + dic_status["volume"] + "%")
+
+
+
+def __update_station():
+    """docstring"""
+    
+    # Variables
+    dic_status = mpc.status()
+    
+    str_station_name.set(dic_status["station"])
+    str_song_name.set(dic_status["artist"] + " - " + dic_status["song"])
+
+
+
+def __update_vol():
+    """docstring"""
+    
+    # Variables
+    dic_status = mpc.status()
+    
+    str_vol.set("Vol.: " + dic_status["volume"] + "%")
+
+
+
 def evt_add_url(event):
     """docstring"""
     
@@ -72,24 +117,28 @@ def evt_play(event):
     else:
         mpc.play("play")
         str_play_text.set("Pause")
+    
+    __update_station()
 
 
 
 def evt_play_next(event):
     """docstring"""
     
-    print ("gui: next")
+    print ("gui: play next")
     
-    mpc.next()
+    mpc.play_next()
+    __update_station()
 
 
 
 def evt_play_prev(event):
     """docstring"""
     
-    print ("gui: previous")
+    print ("gui: play previous")
     
-    mpc.prev()
+    mpc.play_prev()
+    __update_station()
 
 
 
@@ -99,6 +148,7 @@ def evt_vol_down(event):
     print ("gui: volume down")
     
     mpc.vol_down()
+    __update_vol()
 
 
 
@@ -113,6 +163,8 @@ def evt_mute(event):
     else:
         mpc.mute("unmute")
         str_mute_text.set("Mute")
+    
+    __update_vol()
 
 
 
@@ -129,6 +181,7 @@ def evt_vol_up(event):
     print ("gui: volume up")
     
     mpc.vol_up()
+    __update_vol()
 
 
 
@@ -150,7 +203,7 @@ lbl_song.grid(column=0, row=1, columnspan=1, sticky=Tkinter.W, padx=3)
 lbl_song_name.grid(column=1, row=1, columnspan=3, sticky=Tkinter.W, padx=3)
 lbl_vol.grid(column=0, row=2, sticky=Tkinter.W, padx=3)
 lbl_date.grid(column=2, row=2, sticky=Tkinter.W, padx=3)
-lbl_time.grid(column=3, row=2, sticky=Tkinter.W, padx=3)
+lbl_time.grid(column=3, row=2, sticky=Tkinter.E, padx=3)
 btn_add_url.grid(column=0, row=3)
 btn_play_prev.grid(column=1, row=3)
 btn_play.grid(column=2, row=3)
@@ -163,18 +216,15 @@ btn_vol_up.grid(column=3, row=4)
 
 
 mpc.play("play")
-
-obj_datetime_now = datetime.now()
-
-dic_status = mpc.status()
-str_station_name.set(dic_status["station"])
-str_song_name.set(dic_status["artist"] + " - " + dic_status["song"])
-str_vol.set("Vol.: " + dic_status["volume"] + "%")
-str_date.set("D: " + obj_datetime_now.strftime("%d.%m.%y"))
-str_time.set("T: " + obj_datetime_now.strftime("%H:%M"))
+__update_info()
+__update_date_time()
 
 
 
 obj_root.mainloop()
+
+
+
+
 
 
