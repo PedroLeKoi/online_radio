@@ -11,7 +11,7 @@ import sys
 #
 #===============================================================================
 
-class client:
+class Client:
     """docstring"""
     
     # Constants
@@ -446,6 +446,7 @@ class client:
         lst_output = []
         str_output = ""
         
+        subprocess.call(["mpc", "update", "--wait"])
         str_output = subprocess.check_output(["mpc", "status"]).strip()
         lst_output = str_output.split("\n")
         
@@ -500,7 +501,7 @@ class client:
 #
 #===============================================================================
 
-class daemon:
+class Daemon:
     """docstring"""
     
     def __init__(self):
