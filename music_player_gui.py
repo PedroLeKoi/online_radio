@@ -1,10 +1,14 @@
 #!/usr/bin/env python
 #
-# FIXME
+# TODO
 # * Read from/ write to config file
-# * mpc update [--wait] [<path>]
+# * If music comes from online radio: disable 'set play mode'
+#   state=Tkinter.DISABLED
 # * Pack objects into frames
 #   https://www.python-kurs.eu/tkinter_checkboxes.php
+#
+# DONE
+# * mpc update [--wait] [<path>]
 # * Timer, self.after(); inheritance
 #   https://stackoverflow.com/questions/2400262/how-to-create-a-timer-using-tkinter
 
@@ -14,13 +18,13 @@ from datetime import datetime
 
 import music_player
 
+int_frm_height = 140
+int_frm_width = 336
+
 
 
 class OnlineRadio(Tkinter.Frame):
     """docstring"""
-    
-    # Variables
-    __dic_status = {}
     
     def __init__(self, master=None):
         """docstring"""
@@ -28,6 +32,8 @@ class OnlineRadio(Tkinter.Frame):
         Tkinter.Frame.__init__(self, master)
         
         # Variables
+        self.__dic_status = {}
+        
         self.bol_consume = Tkinter.BooleanVar()
         self.bol_consume.set(False)
         self.bol_random = Tkinter.BooleanVar()
@@ -53,113 +59,328 @@ class OnlineRadio(Tkinter.Frame):
         self.str_vol = Tkinter.StringVar()
         self.str_vol.set("Vol.:")
         
-        self.__create_widgets()
-        self.__obj_mpc = music_player.Client()
-        self.__obj_mpc.play("play")
-        self.__update_info()
-        self.__update_date_time()
-    
-    
-    
-    def __create_widgets(self):
-        """docstring"""
+        #=========
         
-        # Objects
-        obj_frame = ttk.Frame(obj_root)
-        lbl_station = ttk.Label(
-            obj_frame,
+        self.master.title("Radio")
+        
+        self.grid()
+        for int_row in range(7):
+            self.master.rowconfigure(int_row, weight=1)    
+        for int_col in range(4):
+            self.master.columnconfigure(int_col, weight=1)
+        
+        #=========
+        
+        # Frame 'Display'
+        frm_display = Tkinter.Frame(
+            master,
+            bg="red"
+        )
+        frm_display.grid(
+            column=0,
+            columnspan=4,
+            row=0,
+            rowspan=3,
+            sticky=Tkinter.W+Tkinter.E+Tkinter.N+Tkinter.S
+        )
+        
+        # Row 1
+        int_row = 0
+        lbl_station = Tkinter.Label(
+            master,
             text="Station:"
         )
-        lbl_curr_station = ttk.Label(
-            obj_frame,
+        lbl_curr_station = Tkinter.Label(
+            master,
             textvariable=self.str_curr_station
         )
+        
+        lbl_station.grid(
+            column=0,
+            columnspan=1,
+            row=int_row,
+            rowspan=1,
+            sticky=Tkinter.W+Tkinter.N+Tkinter.S
+        )
+        lbl_curr_station.grid(
+            column=1,
+            columnspan=3,
+            row=int_row,
+            rowspan=1,
+            sticky=Tkinter.W+Tkinter.N+Tkinter.S
+        )
+        
+        #---
+        
         # Row 2
+        int_row = 1
         lbl_artist = ttk.Label(
-            obj_frame,
+            master,
             text="Artist:"
         )
         lbl_curr_artist = ttk.Label(
-            obj_frame,
+            master,
             textvariable=self.str_curr_artist
         )
+        
+        lbl_artist.grid(
+            column=0,
+            columnspan=1,
+            row=int_row,
+            rowspan=1,
+            sticky=Tkinter.W+Tkinter.N+Tkinter.S
+        )
+        lbl_curr_artist.grid(
+            column=1,
+            columnspan=3,
+            row=int_row,
+            rowspan=1,
+            sticky=Tkinter.W+Tkinter.N+Tkinter.S
+        )
+        
+        #---
+        
         # Row 3
+        int_row = 2
         lbl_song = ttk.Label(
-            obj_frame,
+            master,
             text="Song:"
         )
         lbl_curr_song = ttk.Label(
-            obj_frame,
+            master,
             textvariable=self.str_curr_song
         )
+        
+        lbl_song.grid(
+            column=0,
+            columnspan=1,
+            row=int_row,
+            rowspan=1,
+            sticky=Tkinter.W+Tkinter.N+Tkinter.S
+        )
+        lbl_curr_song.grid(
+            column=1,
+            columnspan=3,
+            row=int_row,
+            rowspan=1,
+            sticky=Tkinter.W+Tkinter.N+Tkinter.S
+        )
+        
+        #---
+        
         # Row 4
-        chk_repeat = ttk.Checkbutton(
-            obj_frame,
-            text="repeat",
-            variable=self.bol_repeat
-        )
-        chk_random = ttk.Checkbutton(
-            obj_frame,
-            text="random",
-            variable=self.bol_random
-        )
-        chk_single = ttk.Checkbutton(
-            obj_frame,
-            text="single",
-            variable=self.bol_single
-        )
-        chk_consume = ttk.Checkbutton(
-            obj_frame,
-            text="consume",
-            variable=self.bol_consume
-        )
-        # Row 5
+        int_row = 3
         lbl_vol = ttk.Label(
-            obj_frame,
+            master,
             textvariable=self.str_vol
         )
         lbl_date = ttk.Label(
-            obj_frame,
+            master,
             textvariable=self.str_date
         )
         lbl_time = ttk.Label(
-            obj_frame,
+            master,
             textvariable=self.str_time
         )
+        
+        lbl_vol.grid(
+            column=0,
+            columnspan=1,
+            padx=2,
+            row=int_row,
+            rowspan=1,
+            sticky=Tkinter.W
+        )
+        lbl_date.grid(
+            column=2,
+            columnspan=1,
+            padx=2,
+            row=int_row,
+            rowspan=1,
+            sticky=Tkinter.W
+        )
+        lbl_time.grid(
+            column=3,
+            columnspan=1,
+            padx=2,
+            row=int_row,
+            rowspan=1,
+            sticky=Tkinter.E
+        )
+        
+        #=========
+        
+        # Frame 'Play Mode'
+        frm_play_mode = Tkinter.Frame(
+            master,
+            bg="blue"
+        )
+        frm_play_mode.grid(
+            column=0,
+            columnspan=4,
+            row=4,
+            rowspan=1,
+            sticky=Tkinter.W+Tkinter.E+Tkinter.N+Tkinter.S
+        )
+        
+        # Row 5
+        int_row = 4
+        chk_consume = ttk.Checkbutton(
+            master,
+            text="consume",
+            variable=self.bol_consume
+        )
+        chk_random = ttk.Checkbutton(
+            master,
+            text="random",
+            variable=self.bol_random
+        )
+        chk_repeat = ttk.Checkbutton(
+            master,
+            text="repeat",
+            variable=self.bol_repeat
+        )
+        chk_single = ttk.Checkbutton(
+            master,
+            text="single",
+            variable=self.bol_single
+        )
+        
+        chk_consume.grid(
+            column=0,
+            columnspan=1,
+            row=int_row,
+            rowspan=1,
+            sticky=Tkinter.W+Tkinter.N+Tkinter.S
+        )
+        chk_random.grid(
+            column=1,
+            columnspan=1,
+            row=int_row,
+            rowspan=1,
+            sticky=Tkinter.W+Tkinter.N+Tkinter.S
+        )
+        chk_repeat.grid(
+            column=2,
+            columnspan=1,
+            row=int_row,
+            rowspan=1,
+            sticky=Tkinter.W+Tkinter.N+Tkinter.S
+        )
+        chk_single.grid(
+            column=3,
+            columnspan=1,
+            row=int_row,
+            rowspan=1,
+            sticky=Tkinter.W+Tkinter.N+Tkinter.S
+        )
+        
+        #=========
+        
+        # Frame 'Control Panel'
+        frm_ctrl_panel = Tkinter.Frame(
+            master,
+            bg="green"
+        )
+        frm_ctrl_panel.grid(
+            column=0,
+            columnspan=4,
+            row=5,
+            rowspan=3,
+            sticky=Tkinter.W+Tkinter.E+Tkinter.N+Tkinter.S
+        )
+        
         # Row 6
+        int_row = 5
         btn_add_url = ttk.Button(
-            obj_frame,
+            master,
             text="+URL"
         )
-        btn_play_prev = ttk.Button(
-            obj_frame,
+        btn_skip_to_prev = ttk.Button(
+            master,
             text="< Prev"
         )
         btn_play = ttk.Button(
-            obj_frame,
+            master,
             textvariable=self.str_play_text
         )
-        btn_play_next = ttk.Button(
-            obj_frame,
+        btn_skip_to_next = ttk.Button(
+            master,
             text="Next >"
         )
+        
+        btn_add_url.grid(
+            column=0,
+            columnspan=1,
+            row=int_row,
+            rowspan=1
+        )
+        btn_skip_to_prev.grid(
+            column=1,
+            columnspan=1,
+            row=int_row,
+            rowspan=1
+        )
+        btn_play.grid(
+            column=2,
+            columnspan=1,
+            row=int_row,
+            rowspan=1
+        )
+        btn_skip_to_next.grid(
+            column=3,
+            columnspan=1,
+            row=int_row,
+            rowspan=1
+        )
+        
+        #---
+        
         # Row 7
+        int_row = 6
         btn_show_playlists = ttk.Button(
-            obj_frame,
+            master,
             text="Lists"
         )
         btn_vol_down = ttk.Button(
-            obj_frame,
+            master,
             text="-V"
         )
         btn_vol_mute = ttk.Button(
-            obj_frame,
+            master,
             textvariable=self.str_mute_text
         )
         btn_vol_up = ttk.Button(
-            obj_frame,
+            master,
             text="+V"
         )
+        
+        btn_show_playlists.grid(
+            column=0,
+            columnspan=1,
+            row=int_row,
+            rowspan=1
+        )
+        btn_vol_down.grid(
+            column=1,
+            columnspan=1,
+            row=int_row,
+            rowspan=1
+        )
+        btn_vol_mute.grid(
+            column=2,
+            columnspan=1,
+            row=int_row,
+            rowspan=1
+        )
+        btn_vol_up.grid(
+            column=3,
+            columnspan=1,
+            row=int_row,
+            rowspan=1
+        )
+        
+        #=========
         
         # Events
         chk_consume.bind("<Button-1>", self.evt_consume)
@@ -167,160 +388,21 @@ class OnlineRadio(Tkinter.Frame):
         chk_repeat.bind("<Button-1>", self.evt_repeat)
         chk_single.bind("<Button-1>", self.evt_single)
         btn_add_url.bind("<Button-1>", self.evt_add_url)
-        btn_play_prev.bind("<Button-1>", self.evt_play_prev)
+        btn_skip_to_prev.bind("<Button-1>", self.evt_skip_to_prev)
         btn_play.bind("<Button-1>", self.evt_play)
-        btn_play_next.bind("<Button-1>", self.evt_play_next)
+        btn_skip_to_next.bind("<Button-1>", self.evt_skip_to_next)
         btn_show_playlists.bind("<Button-1>", self.evt_show_playlists)
         btn_vol_down.bind("<Button-1>", self.evt_vol_down)
         btn_vol_mute.bind("<Button-1>", self.evt_mute)
         btn_vol_up.bind("<Button-1>", self.evt_vol_up)
         
-        # Place in grid
-        int_row = 0
-        obj_frame.grid(column=0, row=int_row)
-        lbl_station.grid(
-            column=0,
-            row=int_row,
-            columnspan=4,
-            sticky=Tkinter.W,
-            padx=3
-        )
-        lbl_curr_station.grid(
-            column=4,
-            row=int_row,
-            columnspan=12,
-            sticky=Tkinter.W,
-            padx=3
-        )
-        # Row 2
-        int_row = 1
-        lbl_artist.grid(
-            column=0,
-            row=int_row,
-            columnspan=4,
-            sticky=Tkinter.W,
-            padx=3
-        )
-        lbl_curr_artist.grid(
-            column=4,
-            row=int_row,
-            columnspan=12,
-            sticky=Tkinter.W,
-            padx=3
-        )
-        # Row 3
-        int_row = 2
-        lbl_song.grid(
-            column=0,
-            row=int_row,
-            columnspan=4,
-            sticky=Tkinter.W,
-            padx=3
-        )
-        lbl_curr_song.grid(
-            column=4,
-            row=int_row,
-            columnspan=12,
-            sticky=Tkinter.W,
-            padx=3
-        )
-        # Row 4
-        int_row = 3
-        lbl_vol.grid(
-            column=0,
-            row=int_row,
-            columnspan=4,
-            sticky=Tkinter.W,
-            padx=3
-        )
-        lbl_date.grid(
-            column=8,
-            row=int_row,
-            columnspan=4,
-            sticky=Tkinter.W,
-            padx=3
-        )
-        lbl_time.grid(
-            column=12,
-            row=int_row,
-            columnspan=4,
-            sticky=Tkinter.E,
-            padx=3
-        )
-        # Row 5
-        int_row = 4
-        chk_consume.grid(
-            column=0,
-            row=int_row,
-            columnspan=4,
-            sticky=Tkinter.W,
-            padx=3
-        )
-        chk_random.grid(
-            column=4,
-            row=int_row,
-            columnspan=4,
-            sticky=Tkinter.W,
-            padx=3
-        )
-        chk_repeat.grid(
-            column=8,
-            row=int_row,
-            columnspan=4,
-            sticky=Tkinter.W,
-            padx=3
-        )
-        chk_single.grid(
-            column=12,
-            row=int_row,
-            columnspan=4,
-            sticky=Tkinter.W,
-            padx=3
-        )
-        # Row 6
-        int_row = 5
-        btn_add_url.grid(
-            column=0,
-            row=int_row,
-            columnspan=4
-        )
-        btn_play_prev.grid(
-            column=4,
-            row=int_row,
-            columnspan=4
-        )
-        btn_play.grid(
-            column=8,
-            row=int_row,
-            columnspan=4
-        )
-        btn_play_next.grid(
-            column=12,
-            row=int_row,
-            columnspan=4
-        )
-        # Row 7
-        int_row = 6
-        btn_show_playlists.grid(
-            column=0,
-            row=int_row,
-            columnspan=4
-        )
-        btn_vol_down.grid(
-            column=4,
-            row=int_row,
-            columnspan=4
-        )
-        btn_vol_mute.grid(
-            column=8,
-            row=int_row,
-            columnspan=4
-        )
-        btn_vol_up.grid(
-            column=12,
-            row=int_row,
-            columnspan=4
-        )
+        #=========
+        
+        self.__obj_mpc = music_player.Client()
+        self.__obj_mpc.play("play")
+        self.__update_info()
+        self.__update_vol()
+        self.__update_date_time()
     
     
     
@@ -330,12 +412,10 @@ class OnlineRadio(Tkinter.Frame):
         # Variables
         obj_datetime_now = datetime.now()
         
-        #self.str_date.set("D: " + obj_datetime_now.strftime("%d.%m.%y"))
         self.str_date.set("D: %s" % obj_datetime_now.strftime("%d %b."))
         self.str_time.set("T: %s" % obj_datetime_now.strftime("%H:%M"))
         
-        # Update after 1000 ms = 1 s
-        self.after(1000, self.__update_date_time)
+        self.after(2000, self.__update_date_time)
     
     
     
@@ -344,13 +424,12 @@ class OnlineRadio(Tkinter.Frame):
         
         # Variables
         self.__dic_status = self.__obj_mpc.status()
-        obj_datetime_now = datetime.now()
         
         self.str_curr_station.set(self.__dic_status["station"])
         self.str_curr_artist.set(self.__dic_status["artist"])
         self.str_curr_song.set(self.__dic_status["song"])
         
-        self.str_vol.set("Vol.: " + self.__dic_status["volume"] + "%")
+        self.after(5000, self.__update_info)
     
     
     
@@ -389,7 +468,7 @@ class OnlineRadio(Tkinter.Frame):
         print ("gui: toggle consume")
         
         # Constant
-        STR_FEATURE_NAME = "random"
+        STR_FEATURE_NAME = "consume"
         
         if self.bol_consume.get():
             self.bol_consume.set(True)
@@ -397,6 +476,38 @@ class OnlineRadio(Tkinter.Frame):
         else:
             self.bol_consume.set(False)
             self.__obj_mpc.toggle_play_mode(True, STR_FEATURE_NAME)
+    
+    
+    
+    def evt_mute(self, event):
+        """docstring"""
+        
+        print ("gui: mute")
+        
+        if self.str_mute_text.get() == "Mute":
+            self.__obj_mpc.mute("mute")
+            self.str_mute_text.set("UNmute")
+        else:
+            self.__obj_mpc.mute("unmute")
+            self.str_mute_text.set("Mute")
+        
+        self.__update_vol()
+    
+    
+    
+    def evt_play(self, event):
+        """docstring"""
+        
+        print ("gui: play")
+        
+        if self.str_play_text.get() == "Pause":
+            self.__obj_mpc.play("pause")
+            self.str_play_text.set("Play")
+        else:
+            self.__obj_mpc.play("play")
+            self.str_play_text.set("Pause")
+        
+        self.__update_station()
     
     
     
@@ -434,6 +545,13 @@ class OnlineRadio(Tkinter.Frame):
     
     
     
+    def evt_show_playlists(self, event):
+        """docstring"""
+        
+        print ("gui: show playlists")
+    
+    
+    
     def evt_single(self, event):
         """docstring"""
         
@@ -451,38 +569,22 @@ class OnlineRadio(Tkinter.Frame):
     
     
     
-    def evt_play(self, event):
-        """docstring"""
-        
-        print ("gui: play")
-        
-        if self.str_play_text.get() == "Pause":
-            self.__obj_mpc.play("pause")
-            self.str_play_text.set("Play")
-        else:
-            self.__obj_mpc.play("play")
-            self.str_play_text.set("Pause")
-        
-        self.__update_station()
-    
-    
-    
-    def evt_play_next(self, event):
+    def evt_skip_to_next(self, event):
         """docstring"""
         
         print ("gui: play next")
         
-        self.__obj_mpc.play_next()
+        self.__obj_mpc.skip_to_next()
         self.__update_station()
     
     
     
-    def evt_play_prev(self, event):
+    def evt_skip_to_prev(self, event):
         """docstring"""
         
         print ("gui: play previous")
         
-        self.__obj_mpc.play_prev()
+        self.__obj_mpc.skip_to_prev()
         self.__update_station()
     
     
@@ -494,29 +596,6 @@ class OnlineRadio(Tkinter.Frame):
         
         self.__obj_mpc.vol_down()
         self.__update_vol()
-    
-    
-    
-    def evt_mute(self, event):
-        """docstring"""
-        
-        print ("gui: mute")
-        
-        if self.str_mute_text.get() == "Mute":
-            self.__obj_mpc.mute("mute")
-            self.str_mute_text.set("UNmute")
-        else:
-            self.__obj_mpc.mute("unmute")
-            self.str_mute_text.set("Mute")
-        
-        self.__update_vol()
-    
-    
-    
-    def evt_show_playlists(self, event):
-        """docstring"""
-        
-        print ("gui: show playlists")
     
     
     
@@ -535,7 +614,7 @@ class OnlineRadio(Tkinter.Frame):
 #===============================================================================
 
 obj_root = Tkinter.Tk()
-obj_root.title("Radio")
+obj_root.geometry('{}x{}'.format(int_frm_width, int_frm_height))
 
 obj_radio = OnlineRadio(master=obj_root)
 obj_root.mainloop()
