@@ -21,6 +21,7 @@ class Client:
         self.__STR_APP_NAME = "online_radio"
         
         # Variables
+        self.__bol_is_error = False
         self.__dic_conf = {
             "music": {
                 "station_num":  "",
@@ -70,6 +71,7 @@ class Client:
         }
         self.__int_curr_vol = 0
         self.__lng_curr_station = 0
+        self.__str_error_msg = ""
         self.__str_path_conf_dir = ""
         self.__str_path_conf_file = ""
         
@@ -98,6 +100,20 @@ class Client:
         
         # Stop playing stream
         self.stop()
+    
+    
+    
+    def __check_for_error(self):
+        """docstring"""
+        
+        # Variables
+        
+        print ("mpc: check for error")
+        
+        if self.__dic_status["error"] != "":
+            subprocess.call(["mpc", "stop"])
+            self.__bol_is_error = True
+        
     
     
     
@@ -200,7 +216,22 @@ class Client:
     
     
     
-    def __parse_status_line1(self, lst_output):
+    def __parse_output(self, str_output):
+        """docstring"""
+        
+        # Variables
+        lst_output = str_output.split("\n")
+        
+        print ("mpc: parse output")
+        
+        self.__parse_output_l1(lst_output)
+        self.__parse_output_l2(lst_output)
+        self.__parse_output_l3(lst_output)
+        self.__parse_output_l4(lst_output)
+    
+    
+    
+    def __parse_output_l1(self, lst_output):
         """docstring"""
         
         # Constant
@@ -209,22 +240,28 @@ class Client:
         
         # Variables
         int_len = INT_MAX_LEN - 3
+        int_pos_colon = (-1)
+        int_pos_hyphen = (-1)
         lst_temp = []
         
-        print ("mpc: get status line 1")
+        print ("mpc: parse output line 1")
         
-        # Parse output line 1
         if len(lst_output) > 1:
+            int_pos_colon = lst_output[0].find(":")
+            int_pos_hyphen = lst_output[0].find(" - ")
+        
+        if int_pos_colon:
             lst_temp = lst_output[0].split(":")
             self.__dic_status["station"] = lst_temp[0]
-            if lst_temp[1]:
-                if STR_DELIM in lst_temp[1]:
-                    lst_temp = lst_temp[1].split(STR_DELIM)
-                    self.__dic_status["artist"] = lst_temp[0].strip()
-                    self.__dic_status["song"]   = lst_temp[1].strip()
-                else:
-                    self.__dic_status["artist"] = lst_temp[1].strip()
-                    self.__dic_status["song"]   = "-/-"
+        
+        if int_pos_hyphen:
+            if STR_DELIM in lst_temp[1]:
+                lst_temp = lst_temp[1].split(STR_DELIM)
+                self.__dic_status["artist"] = lst_temp[0].strip()
+                self.__dic_status["song"]   = lst_temp[1].strip()
+            else:
+                self.__dic_status["artist"] = lst_temp[1].strip()
+                self.__dic_status["song"]   = "-/-"
         
         # Limit number of characters
         for str_option in ["station", "artist", "song"]:
@@ -235,15 +272,14 @@ class Client:
     
     
     
-    def __parse_status_line2(self, lst_output):
+    def __parse_output_l2(self, lst_output):
         """docstring"""
         
         # Variables
         lst_temp = []
         
-        print ("mpc: get status line 2")
+        print ("mpc: parse output line 2")
         
-        # Parse output line 2
         if len(lst_output) > 1:
             lst_temp = filter(None, lst_output[1].split(" "))
             self.__dic_status["status"]    = lst_temp[0][1:(-1)]
@@ -253,27 +289,42 @@ class Client:
     
     
     
-    def __parse_status_line3(self, lst_output):
+    def __parse_output_l3(self, lst_output):
         """docstring"""
         
         # Variables
         lst_temp = []
-        str_output = lst_output[(-1)]
+        str_output = ""
         
-        print ("mpc: get status line 3")
+        print ("mpc: parse output line 3")
         
-        #if len(lst_output) > 1:
-        #    str_output = lst_output[3]
-        #else:
-        #    str_output = lst_output[0]
+        if len(lst_output) > 1:
+            str_output = lst_output[3]
+        else:
+            str_output = lst_output[0]
         
-        # Parse output line 3
         lst_temp = filter(None, str_output.split(" "))
         self.__dic_status["volume"]  = lst_temp[1][:(-1)]
         self.__dic_status["repeat"]  = lst_temp[3]
         self.__dic_status["random"]  = lst_temp[5]
         self.__dic_status["single"]  = lst_temp[7]
         self.__dic_status["consume"] = lst_temp[9]
+    
+    
+    
+    def __parse_output_l4(self, lst_output):
+        """docstring"""
+        
+        # Variables
+        lst_temp = []
+        str_output = ""
+        
+        print ("mpc: parse output line 4")
+        
+        if lst_output:
+            str_output = lst_output[(-1)]
+            if str_output.lower().startswith("[error]"):
+                self.__dic_status["error"] = str_output[8:]
     
     
     
@@ -385,13 +436,27 @@ class Client:
         
         subprocess.call(["mpc", "update", "--wait"])
         lst_output.append(subprocess.check_output(["mpc", "current"]))
-        self.__parse_status_line1(lst_output)
+        self.__parse_output_l1(lst_output)
         
         return {
             "station": self.__dic_status["station"],
             "artist":  self.__dic_status["artist"],
             "song":    self.__dic_status["song"]
         }
+    
+    
+    
+    def get_error_msg(self):
+        """docstring"""
+        
+        return self.__dic_status["error"]
+    
+    
+    
+    def is_error(self):
+        """docstring"""
+        
+        return self.__bol_is_error
     
     
     
@@ -425,6 +490,7 @@ class Client:
         
         # Variables
         str_curr_station = ""
+        str_output = ""
         
         print ("mpc: play")
         
@@ -433,7 +499,12 @@ class Client:
         if str_state_to_set == "pause":
             subprocess.call(["mpc", "pause"])
         else:
-            subprocess.call(["mpc", "play", str_curr_station])
+            self.__parse_output(
+                subprocess.check_output(
+                    ["mpc", "play", str_curr_station]
+                )
+            )
+            self.__check_for_error()
     
     
     
@@ -452,6 +523,20 @@ class Client:
         print ("mpc: repeat")
         
         self.__toggle_play_mode(bol_state_to_set, "repeat")
+    
+    
+    
+    def reset_error(self):
+        """docstring"""
+        
+        print ("mpc: reset error")
+        
+        self.__bol_is error = False
+        self.__dic_status["error"] = ""
+        
+        #subprocess.call(["mpc", "clear"])
+        #subprocess.call(["mpc", "load", "<playlist>"])
+        #subprocess.call(["mpc", "play", "<last/ default station>"])
     
     
     
@@ -480,7 +565,12 @@ class Client:
         else:
             self.__lng_curr_station = 1
         
-        subprocess.call(["mpc", "play", str(self.__lng_curr_station)])
+        self.__parse_output(
+            subprocess.check_output(
+                ["mpc", "play", str(self.__lng_curr_station)]
+            )
+        )
+        self.__check_for_error()
     
     
     
@@ -500,7 +590,12 @@ class Client:
         else:
             self.__lng_curr_station = len(lst_playlist)
         
-        subprocess.call(["mpc", "play", str(self.__lng_curr_station)])
+        self.__parse_output(
+            subprocess.check_output(
+                ["mpc", "play", str(self.__lng_curr_station)]
+            )
+        )
+        self.__check_for_error()
     
     
     
@@ -508,18 +603,14 @@ class Client:
         """docstring"""
         
         # Variables
-        lst_output = []
         str_output = ""
         
         print ("mpc: status")
         
         subprocess.call(["mpc", "update", "--wait"])
-        str_output = subprocess.check_output(["mpc", "status"]).strip()
-        lst_output = str_output.split("\n")
-        
-        self.__parse_status_line1(lst_output)
-        self.__parse_status_line2(lst_output)
-        self.__parse_status_line3(lst_output)
+        self.__parse_output(
+            subprocess.check_output(["mpc", "status"]).strip()
+        )
         
         return self.__dic_status
     
